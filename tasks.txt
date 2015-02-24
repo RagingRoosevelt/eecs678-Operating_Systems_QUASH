@@ -1,0 +1,11 @@
+run executables with command line parameters (foreground)
+run executables with command line parameters (background)
+(background) print "[JOBID] PID"
+(background) print "[JOBID] PID finished COMMAND"
+set
+cd
+quit/exit
+jobs
+IO redirection (>, >>, <)
+pipe (|)
+reading commands
