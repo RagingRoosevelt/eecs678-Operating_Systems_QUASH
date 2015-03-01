@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <unistd.h>
 #include <sys/wait.h>
 
 using namespace std;
@@ -12,7 +14,7 @@ using namespace std;
 * [ ] Run executables with arguments (10)
 * [ ] set for HOME and PATH work properly (5)
 * [x] exit and quit work properly (5)
-* [ ] cd (with and without arguments) works properly (5)
+* [~45%] cd (with and without arguments) works properly (5)
 * [ ] PATH works properly. Give error messages when the executable is not found (10)
 * [ ] Child processes inherit the environment (5)
 * [ ] Allow background/foreground execution (&) (5)
@@ -30,14 +32,33 @@ using namespace std;
 * the job that should receive the signal (5)
 */
 
+
+// Needs more testing
+void cd(char* newpath)
+{
+	if (newpath == NULL)
+	{
+		chdir(getenv("HOME"));
+	}
+	else
+	{
+		if(chdir(newpath) == -1)
+		{
+			// This part definitely happens.
+			printf("Invalid path name. Please be careful.");
+		}
+	}
+}
+
+
 int main(int argc, char **argv,char **envp)
 {
-	// Until I can figure out inputs in C, autoquit (I hope)
 	char current_cmd[100];
 	printf("QUASH>");
 	gets(current_cmd);
 	while (1)
 	{
+
 		if ((strcmp(current_cmd, "exit") == 0) || (strcmp(current_cmd, "quit") == 0))
 		{
 			break;
