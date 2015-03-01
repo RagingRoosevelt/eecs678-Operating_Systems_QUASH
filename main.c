@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sys/wait.h>
 
-using namepace std;
+using namespace std;
 
 /*
 * [ ] Run executables without arguments (10)
