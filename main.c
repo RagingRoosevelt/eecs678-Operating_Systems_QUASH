@@ -57,29 +57,36 @@ void cd(char* newpath)
 
 int main(int argc, char **argv,char **envp)
 {
-	char current_cmd[100];
+	char current_cmd[BSIZE];
 	char current_dir[BSIZE];
+	
 	printf("QUASH>");
 	gets(current_cmd);
 	
+	/* set initial directory */
 	if (getcwd(current_dir, sizeof(current_dir)) == NULL)
 		perror("getcwd() error");
 	
 	
 	while (1)
-	{
-
+	{		
+		/* exit & quit command */
 		if ((strcmp(current_cmd, "exit") == 0) || (strcmp(current_cmd, "quit") == 0))
 		{
 			break;
-		}
-		if (strcmp(current_cmd, "pwd") == 0)
+		
+		
+		} 
+		/* pwd command */
+		else if (strcmp(current_cmd, "pwd") == 0)
 		{
-			printf(strcat(current_dir, "\n"));
+			char temp[BSIZE];
+			strcpy(temp, current_dir);
+			printf(strcat(temp, "\n"));
 		}
+		
 		printf("QUASH>");
 		scanf("%s", &current_cmd);
-		
 		
 	}
 
