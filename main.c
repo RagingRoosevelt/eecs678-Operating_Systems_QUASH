@@ -7,6 +7,10 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include "execute.c"
+
+#define BSIZE 256
+
 using namespace std;
 
 /*
@@ -54,8 +58,14 @@ void cd(char* newpath)
 int main(int argc, char **argv,char **envp)
 {
 	char current_cmd[100];
+	char current_dir[BSIZE];
 	printf("QUASH>");
 	gets(current_cmd);
+	
+	if (getcwd(current_dir, sizeof(current_dir)) == NULL)
+		perror("getcwd() error");
+	
+	
 	while (1)
 	{
 
@@ -63,8 +73,14 @@ int main(int argc, char **argv,char **envp)
 		{
 			break;
 		}
+		if (strcmp(current_cmd, "pwd") == 0)
+		{
+			printf(strcat(current_dir, "\n"));
+		}
 		printf("QUASH>");
 		scanf("%s", &current_cmd);
+		
+		
 	}
 
 	return 0;
