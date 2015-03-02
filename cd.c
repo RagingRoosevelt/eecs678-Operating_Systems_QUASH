@@ -15,7 +15,7 @@ using namespace std;
 // Needs more testing
 void cd(char* newpath)
 {
-	if (newpath == NULL)
+	if ((newpath == NULL) || (strcmp(newpath," ")))
 	{
 		chdir(getenv("HOME"));
 	}

@@ -54,7 +54,7 @@ int main(int argc, char **argv,char **envp)
 	
 	while ((strcmp(user_input, "exit")!=0) && (strcmp(user_input, "quit")!=0))
 	{		
-		printf("QUASH>");
+		printf(strcat(getcwd(NULL, 0), ">"));
 		fgets(user_input, sizeof(user_input), stdin);
 		
 		/* 
