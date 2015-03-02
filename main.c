@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 
 #include "execute.c"
+#include "cd.c"
 
 #define BSIZE 256
 
@@ -35,24 +36,6 @@ using namespace std;
 * specifying the signal number, and JOBID is an integer that specifies
 * the job that should receive the signal (5)
 */
-
-
-// Needs more testing
-void cd(char* newpath)
-{
-	if (newpath == NULL)
-	{
-		chdir(getenv("HOME"));
-	}
-	else
-	{
-		if(chdir(newpath) == -1)
-		{
-			// This part definitely happens.
-			printf("Invalid path name. Please be careful.\n");
-		}
-	}
-}
 
 
 int main(int argc, char **argv,char **envp)
