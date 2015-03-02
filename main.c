@@ -49,7 +49,7 @@ void cd(char* newpath)
 		if(chdir(newpath) == -1)
 		{
 			// This part definitely happens.
-			printf("Invalid path name. Please be careful.");
+			printf("Invalid path name. Please be careful.\n");
 		}
 	}
 }
@@ -57,36 +57,59 @@ void cd(char* newpath)
 
 int main(int argc, char **argv,char **envp)
 {
+	
+	printf("Welcome to QUASH\n");
+	cout << "Home Directory:    " << getenv("HOME") << "\n";
+	cout << "Current Directory: " << getcwd(NULL, 0) << "\n\n";
+	cout << "PATH: " << getenv("PATH") << "\n\n";
+	
+	char user_input[BSIZE];
 	char current_cmd[BSIZE];
-	char current_dir[BSIZE];
-	
-	printf("QUASH>");
-	gets(current_cmd);
-	
-	/* set initial directory */
-	if (getcwd(current_dir, sizeof(current_dir)) == NULL)
-		perror("getcwd() error");
+	char current_args[BSIZE];
+	char temp[BSIZE];
 	
 	
-	while (1)
+	while ((strcmp(user_input, "exit")!=0) && (strcmp(user_input, "quit")!=0))
 	{		
-		/* exit & quit command */
-		if ((strcmp(current_cmd, "exit") == 0) || (strcmp(current_cmd, "quit") == 0))
-		{
-			break;
-		
-		
-		} 
-		/* pwd command */
-		else if (strcmp(current_cmd, "pwd") == 0)
-		{
-			char temp[BSIZE];
-			strcpy(temp, current_dir);
-			printf(strcat(temp, "\n"));
-		}
-		
 		printf("QUASH>");
-		scanf("%s", &current_cmd);
+		fgets(user_input, sizeof(user_input), stdin);
+		
+		/* 
+		 *tokenize user input into command and arguments 
+		 */
+		/* get the first token */
+		char *token;
+		strcpy(current_cmd, "");
+		strcpy(current_args, "");
+		token = strtok(user_input, " \n");
+		strncpy(current_cmd, token, sizeof(current_cmd)-1);
+		printf( "command: %s\n", current_cmd );
+		token = strtok(NULL, " \n");
+		/* walk through other tokens */
+		while( token != NULL ) 
+		{
+			//printf( "Argument: %s\n", token );
+			strncpy(temp, token, sizeof(temp)-1);
+			strcat(current_args, temp);
+			strcat(current_args, " ");
+			token = strtok(NULL, " \n");
+		}
+		printf("Arguments: '%s'\n", current_args);
+		
+		/* 
+		 * pwd command 
+		 */
+		if (strcmp(current_cmd, "pwd") == 0)
+		{
+			if (getcwd(temp, sizeof(temp)) == NULL)
+			{
+				perror("getcwd() error");
+			}
+		
+			printf(strcat(temp, "\n"));
+		} else if (strcmp(current_cmd, "cd") == 0) {
+			cd(current_args);
+		}
 		
 	}
 
