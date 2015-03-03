@@ -48,7 +48,7 @@ int main(int argc, char **argv,char **envp)
 	
 	char user_input[BSIZE];
 	char current_cmd[BSIZE];
-	char current_args[BSIZE];
+	char current_args[BSIZE][BSIZE];
 	char temp[BSIZE];
 	
 	
@@ -63,21 +63,30 @@ int main(int argc, char **argv,char **envp)
 		/* get the first token */
 		char *token;
 		strcpy(current_cmd, "");
-		strcpy(current_args, "");
+		for (int i=0; i<BSIZE; i++)
+		{
+			strcpy(current_args[i], "");
+		}
 		token = strtok(user_input, " \n");
 		strncpy(current_cmd, token, sizeof(current_cmd)-1);
 		printf( "command: %s\n", current_cmd );
 		token = strtok(NULL, " \n");
 		/* walk through other tokens */
+		int arg_count = 0;
 		while( token != NULL ) 
 		{
 			//printf( "Argument: %s\n", token );
-			strncpy(temp, token, sizeof(temp)-1);
+			strncpy(current_args[arg_count], token, sizeof(current_args[arg_count])-1);
+			/*strncpy(temp, token, sizeof(temp)-1);
 			strcat(current_args, temp);
-			strcat(current_args, " ");
+			strcat(current_args, " ");*/
 			token = strtok(NULL, " \n");
+			arg_count++;
 		}
-		printf("Arguments: '%s'\n", current_args);
+		for (int i=0; i<arg_count; i++)
+		{
+			printf("Arguments: '%s'\n", current_args[i]);
+		}
 		
 		/* 
 		 * pwd command 
@@ -91,7 +100,7 @@ int main(int argc, char **argv,char **envp)
 		
 			printf(strcat(temp, "\n"));
 		} else if (strcmp(current_cmd, "cd") == 0) {
-			cd(current_args);
+			cd(current_args[0]);
 		}
 		
 	}
