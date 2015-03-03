@@ -12,9 +12,7 @@
 using namespace std;
 
 
-void execute(char* string)
+void execute(char current_cmd[BSIZE], char current_args[BSIZE][BSIZE])
 {
-	char command[BSIZE];
-	char arguments[BSIZE];
 	char background_flag[1];
 }
