@@ -10,6 +10,7 @@
 #include "execute.c"
 #include "cd.c"
 #include "job.c"
+//#include "tokenize.c"
 
 #define BSIZE 256
 
@@ -51,6 +52,7 @@ int main(int argc, char **argv,char **envp)
 	char current_cmd[BSIZE];
 	char current_args[BSIZE][BSIZE];
 	char temp[BSIZE];
+	int arg_count;
 	
 	
 	while ((strcmp(user_input, "exit")!=0) && (strcmp(user_input, "quit")!=0))
@@ -66,7 +68,7 @@ int main(int argc, char **argv,char **envp)
 		strcpy(current_cmd, "");
 		for (int i=0; i<BSIZE; i++)
 		{ strcpy(current_args[i], ""); }
-	
+
 		// Initialize tokenization 
 		token = strtok(user_input, " \n");
 		// Assume that first token is the command rather than arguments
@@ -75,7 +77,7 @@ int main(int argc, char **argv,char **envp)
 		// Advance token location
 		token = strtok(NULL, " \n");
 		/* walk through other tokens */
-		int arg_count = 0;
+		arg_count = 0;
 		while( token != NULL ) 
 		{	// Extract current token to next element of the argument array
 			strncpy(current_args[arg_count], token, sizeof(current_args[arg_count])-1);
@@ -84,6 +86,7 @@ int main(int argc, char **argv,char **envp)
 			// Increment count of arguments
 			arg_count++;
 		}
+		
 		
 		// Print arguments gathered
 		for (int i=0; i<arg_count; i++)
@@ -118,7 +121,8 @@ int main(int argc, char **argv,char **envp)
 		/*******************************
 		 * External command processing 
 		 *******************************/
-			execute(current_cmd, current_args);
+			if (execute(current_cmd, current_args, arg_count)==0)
+			{ printf("error: command not found\n"); }				
 		}
 		
 	}
