@@ -9,6 +9,7 @@
 
 #include "execute.c"
 #include "cd.c"
+#include "job.c"
 
 #define BSIZE 256
 
