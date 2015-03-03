@@ -8,7 +8,7 @@ struct job {
 	int jobID, jobpid;
 	// pid_t jobpid; Better?
 	char jobcommand[BSIZE];
-	char jobargs[BSIZE][BSIZE]}
+	char jobargs[BSIZE][BSIZE];
 	bool background;
 };
 

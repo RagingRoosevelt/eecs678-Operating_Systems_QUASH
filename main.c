@@ -106,10 +106,18 @@ int main(int argc, char **argv,char **envp)
 		// cd
 		} else if (strcmp(current_cmd, "cd") == 0) {
 			cd(current_args[0]);
+		} 
+		// Currently defaults to PATH. If we toss an if in here and change that to cur_args[1],
+		// I think we're golden. I'll test in the morning.
+		else if (strcmp(current_cmd, "set") == 0) 
+		{
+			setenv ("PATH",strcat(strcat(getenv("PATH"),":"),current_args[0]),1);
+			printf("PATH:              %s\n\n", getenv("PATH"));
+		}
+		else {
 		/*******************************
 		 * External command processing 
 		 *******************************/
-		} else {
 			execute(current_cmd, current_args);
 		}
 		
