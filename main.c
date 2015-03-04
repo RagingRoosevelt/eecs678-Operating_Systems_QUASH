@@ -19,7 +19,7 @@ using namespace std;
 /*
 * [ ] Run executables without arguments (10)
 * [ ] Run executables with arguments (10)
-* [ ] set for HOME and PATH work properly (5)
+* [x] set for HOME and PATH work properly (5)
 * [x] exit and quit work properly (5)
 * [x] cd (with and without arguments) works properly (5)
 * [ ] PATH works properly. Give error messages when the executable is not found (10)
@@ -127,6 +127,15 @@ int main(int argc, char **argv,char **envp)
 			}
 			else{
 				printf("Please specify PATH or HOME.");
+			}
+		}
+		// jobs
+		// Theoretically, anyway.
+		else if (strcmp(current_cmd,"jobs") == 0)
+		{
+			for (int i = 0; i < numjobs; i++)
+			{
+				printf("[%i] %i %s\n", joblist[i].jobID, joblist[i].jobpid, joblist[i].jobcommand);
 			}
 		}
 		else {
