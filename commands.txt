@@ -3,3 +3,5 @@ cd
 pwd
 set PATH /home/slamb/EECS678
 pwd
+quit
+cd /home/slamb/EECS678

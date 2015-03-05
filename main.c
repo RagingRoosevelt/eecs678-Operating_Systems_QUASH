@@ -67,15 +67,11 @@ int main(int argc, char **argv,char **envp)
 	{	// display QUASH prompt and get user input.	
 		printf(strcat(getcwd(NULL, 0), "> "));
 		// Get input from user or from file
-		/* if (fromfile)
+		if (fromfile)
 		{
-			if(fgets (user_input, sizeof(user_input), file))
+			if(!feof(file))
 			{ // Next line read from file
-				// Strips \n from input
-				size_t len = strlen(user_input);
-				if (len > 0 && user_input[len-1] == '\n') {
-					user_input[--len] = '\0';
-				}
+				fgets (user_input, sizeof(user_input), file);
 			}
 			else 
 			{ // EOF reached, switch back to user input
@@ -87,15 +83,13 @@ int main(int argc, char **argv,char **envp)
 		else
 		{ // Get user input from stdin.
 			fgets(user_input, sizeof(user_input), stdin);
-		} */
+		}
 		
-		
-		//if (fromfile && !(fgets(user_input, sizeof(user_input), stdin)))
-		//{
-			//fclose(file);
-		//	fromfile = 0;
-			fgets(user_input, sizeof(user_input), stdin);
-		//}
+		//Strips \n from input
+		size_t len = strlen(user_input);
+		if (len > 0 && user_input[len-1] == '\n') {
+				user_input[len - 1] = '\0';
+			}
 		
 		struct command current_cmd;
 		
@@ -179,7 +173,7 @@ int main(int argc, char **argv,char **envp)
 		}
 		else if (strcmp(current_cmd.instr,"<") == 0)
 		{
-			file = freopen(current_cmd.args[0], "r", stdin);
+			file = fopen(current_cmd.args[0], "rt"/*, stdin*/);
 			//fw = fopen(current_cmd.args[0], "r");
 			//dup2(fw,STDIN_FILENO);
 			fromfile = 1;
