@@ -7,11 +7,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#include "execute.c"
-#include "cd.c"
-#include "job.c"
-//#include "tokenize.c"
-
 #define BSIZE 256
 
 using namespace std;
@@ -44,6 +39,11 @@ struct command {
 	char args[BSIZE][BSIZE];
 	int arg_count;
 };
+
+#include "execute.c"
+#include "cd.c"
+#include "job.c"
+//#include "tokenize.c"
 
 
 int main(int argc, char **argv,char **envp)

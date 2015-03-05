@@ -14,6 +14,7 @@ using namespace std;
 
 int execute(char current_cmd[BSIZE], char current_args[BSIZE][BSIZE], int arg_count)
 {
+	pid_t pid;
 	char background_flag[1];
 	char cmdbuf[BSIZE];
 	/* 
@@ -26,19 +27,22 @@ int execute(char current_cmd[BSIZE], char current_args[BSIZE][BSIZE], int arg_co
 	{
 		// absolute path to binary
 		printf("absolute path to binary\n");
-		 
-		sprintf(cmdbuf, "%s", current_cmd);
-		for (int i=0; i<arg_count; i++)
+		
+		sprintf(cmdbuf, current_args[0]);
+		for (int i=1; i<arg_count; i++)
 		{ 
 			sprintf(cmdbuf, "%s %s", cmdbuf, current_args[i]); 
 		}
 		printf("%s\n",cmdbuf);
 		
-		/* swap fork binaries in order to execute the find command */
-		/*if ( (execl(BASH_EXEC, BASH_EXEC, "-c", cmdbuf, (char *) 0)) < 0) {
-		  fprintf(stderr, "\nError execing find. ERROR#%d\n", errno);
-		  return EXIT_FAILURE;
-		}*/
+		pid = fork();
+		if(pid == 0)
+		{
+			if (execl(current_cmd,current_cmd,cmdbuf)<0){
+				fprintf(stderr, "\nError execing find. ERROR#%d\n");
+				return 0;
+			}
+		}
 		return 1;
 	 } else if (current_cmd[0]=='.')
 	 {
