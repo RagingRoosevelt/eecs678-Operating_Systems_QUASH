@@ -1,0 +1,5 @@
+pwd
+cd
+pwd
+set PATH /home/slamb/EECS678
+pwd

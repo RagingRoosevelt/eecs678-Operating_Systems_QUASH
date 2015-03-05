@@ -6,6 +6,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #define BSIZE 256
 
@@ -50,18 +51,51 @@ int main(int argc, char **argv,char **envp)
 {
 	
 	printf("Welcome to QUASH\n");
+	printf("Developed by Theodore S Lindsey & Samuel A Lamb\n");
 	printf("Home Directory:    %s\n", getenv("HOME"));
 	printf("Current Directory: %s\n\n", getcwd(NULL, 0));
 	printf("PATH:              %s\n\n", getenv("PATH"));
 	
 	char user_input[BSIZE];
 	char temp[BSIZE];
-	
+	char filename[BSIZE];
+	int fromfile = 0;
+	FILE* file;
+	int fw;
 	
 	while ((strcmp(user_input, "exit")!=0) && (strcmp(user_input, "quit")!=0))
 	{	// display QUASH prompt and get user input.	
-		printf(strcat(getcwd(NULL, 0), ">"));
-		fgets(user_input, sizeof(user_input), stdin);
+		printf(strcat(getcwd(NULL, 0), "> "));
+		// Get input from user or from file
+		/* if (fromfile)
+		{
+			if(fgets (user_input, sizeof(user_input), file))
+			{ // Next line read from file
+				// Strips \n from input
+				size_t len = strlen(user_input);
+				if (len > 0 && user_input[len-1] == '\n') {
+					user_input[--len] = '\0';
+				}
+			}
+			else 
+			{ // EOF reached, switch back to user input
+				fromfile = 0;
+				fclose(file);
+				fgets(user_input, sizeof(user_input), stdin);
+			}
+		}
+		else
+		{ // Get user input from stdin.
+			fgets(user_input, sizeof(user_input), stdin);
+		} */
+		
+		
+		//if (fromfile && !(fgets(user_input, sizeof(user_input), stdin)))
+		//{
+			//fclose(file);
+		//	fromfile = 0;
+			fgets(user_input, sizeof(user_input), stdin);
+		//}
 		
 		struct command current_cmd;
 		
@@ -142,6 +176,13 @@ int main(int argc, char **argv,char **envp)
 			{
 				printf("[%i] %i %s\n", joblist[i].jobID, joblist[i].jobpid, joblist[i].jobcommand);
 			}
+		}
+		else if (strcmp(current_cmd.instr,"<") == 0)
+		{
+			file = freopen(current_cmd.args[0], "r", stdin);
+			//fw = fopen(current_cmd.args[0], "r");
+			//dup2(fw,STDIN_FILENO);
+			fromfile = 1;
 		}
 		else {
 		/*******************************
