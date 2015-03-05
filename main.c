@@ -39,6 +39,12 @@ using namespace std;
 * the job that should receive the signal (5)
 */
 
+struct command {
+	char instr[BSIZE];
+	char args[BSIZE][BSIZE];
+	int arg_count;
+};
+
 
 int main(int argc, char **argv,char **envp)
 {
@@ -49,10 +55,7 @@ int main(int argc, char **argv,char **envp)
 	printf("PATH:              %s\n\n", getenv("PATH"));
 	
 	char user_input[BSIZE];
-	char current_cmd[BSIZE];
-	char current_args[BSIZE][BSIZE];
 	char temp[BSIZE];
-	int arg_count;
 	
 	
 	while ((strcmp(user_input, "exit")!=0) && (strcmp(user_input, "quit")!=0))
@@ -60,37 +63,39 @@ int main(int argc, char **argv,char **envp)
 		printf(strcat(getcwd(NULL, 0), ">"));
 		fgets(user_input, sizeof(user_input), stdin);
 		
+		struct command current_cmd;
+		
 		/*******************************
 		 * tokenize user input into command and arguments 
 		 *******************************/
 		char *token;
 		// Clear out contents of the current_args array and current_cmd
-		strcpy(current_cmd, "");
+		strcpy(current_cmd.instr, "");
 		for (int i=0; i<BSIZE; i++)
-		{ strcpy(current_args[i], ""); }
+		{ strcpy(current_cmd.args[i], ""); }
 
 		// Initialize tokenization 
 		token = strtok(user_input, " \n");
 		// Assume that first token is the command rather than arguments
-		strncpy(current_cmd, token, sizeof(current_cmd)-1);
-		printf( "command: %s\n", current_cmd );
+		strncpy(current_cmd.instr, token, sizeof(current_cmd.instr)-1);
+		printf( "command: %s\n", current_cmd.instr );
 		// Advance token location
 		token = strtok(NULL, " \n");
 		/* walk through other tokens */
-		arg_count = 0;
+		current_cmd.arg_count = 0;
 		while( token != NULL ) 
 		{	// Extract current token to next element of the argument array
-			strncpy(current_args[arg_count], token, sizeof(current_args[arg_count])-1);
+			strncpy(current_cmd.args[current_cmd.arg_count], token, sizeof(current_cmd.args[current_cmd.arg_count])-1);
 			// Advance token location
 			token = strtok(NULL, " \n");
 			// Increment count of arguments
-			arg_count++;
+			current_cmd.arg_count++;
 		}
 		
 		
 		// Print arguments gathered
-		for (int i=0; i<arg_count; i++)
-		{ printf("Arguments: '%s'\n", current_args[i]); }
+		for (int i=0; i<current_cmd.arg_count; i++)
+		{ printf("Arguments: '%s'\n", current_cmd.args[i]); }
 		
 		
 		
@@ -98,7 +103,7 @@ int main(int argc, char **argv,char **envp)
 		 * Built-in command processing 
 		 *******************************/
 		// pwd
-		if (strcmp(current_cmd, "pwd") == 0)
+		if (strcmp(current_cmd.instr, "pwd") == 0)
 		{
 			if (getcwd(temp, sizeof(temp)) == NULL)
 			{
@@ -107,22 +112,22 @@ int main(int argc, char **argv,char **envp)
 		
 			printf(strcat(temp, "\n"));
 		// cd
-		} else if (strcmp(current_cmd, "cd") == 0) {
-			cd(current_args[0]);
+		} else if (strcmp(current_cmd.instr, "cd") == 0) {
+			cd(current_cmd.args[0]);
 		} 
 		// set
-		else if (strcmp(current_cmd, "set") == 0) 
+		else if (strcmp(current_cmd.instr, "set") == 0) 
 		{
 			// set PATH
-			if (strcmp(current_args[0],"PATH") == 0)
+			if (strcmp(current_cmd.args[0],"PATH") == 0)
 			{
-				setenv ("PATH",strcat(strcat(getenv("PATH"),":"),current_args[1]),1);
+				setenv ("PATH",strcat(strcat(getenv("PATH"),":"),current_cmd.args[1]),1);
 				printf("PATH:              %s\n\n", getenv("PATH"));
 			}
 			// set HOME
-			else if (strcmp(current_args[0],"HOME") == 0)
+			else if (strcmp(current_cmd.args[0],"HOME") == 0)
 			{
-				setenv("HOME",current_args[1],1);
+				setenv("HOME",current_cmd.args[1],1);
 				printf("Home Directory:    %s\n", getenv("HOME"));
 			}
 			else{
@@ -131,7 +136,7 @@ int main(int argc, char **argv,char **envp)
 		}
 		// jobs
 		// Theoretically, anyway.
-		else if (strcmp(current_cmd,"jobs") == 0)
+		else if (strcmp(current_cmd.instr,"jobs") == 0)
 		{
 			for (int i = 0; i < numjobs; i++)
 			{
@@ -142,7 +147,7 @@ int main(int argc, char **argv,char **envp)
 		/*******************************
 		 * External command processing 
 		 *******************************/
-			if (execute(current_cmd, current_args, arg_count)==0)
+			if (execute(current_cmd.instr, current_cmd.args, current_cmd.arg_count)==0)
 			{ printf("error: command not found\n"); }				
 		}
 		
