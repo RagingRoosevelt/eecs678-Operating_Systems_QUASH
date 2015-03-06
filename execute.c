@@ -17,6 +17,7 @@ int execute(char current_cmd[BSIZE], char current_args[BSIZE][BSIZE], int arg_co
 	pid_t pid;
 	char background_flag[1];
 	char cmdbuf[BSIZE];
+	char argbuf[BSIZE];
 	/* 
 	 * Determine if command is 
 	 * 1) a relative path to a binary, 
@@ -28,31 +29,45 @@ int execute(char current_cmd[BSIZE], char current_args[BSIZE][BSIZE], int arg_co
 		// absolute path to binary
 		printf("absolute path to binary\n");
 		
-		sprintf(cmdbuf, current_args[0]);
+		sprintf(cmdbuf,"%s",current_cmd);
+		sprintf(argbuf, current_args[0]);
 		for (int i=1; i<arg_count; i++)
 		{ 
-			sprintf(cmdbuf, "%s %s", cmdbuf, current_args[i]); 
+			sprintf(argbuf, "%s %s", argbuf, current_args[i]); 
 		}
-		printf("%s\n",cmdbuf);
-		
-		pid = fork();
-		if(pid == 0)
-		{
-			if (execl(current_cmd,current_cmd,cmdbuf)<0){
-				fprintf(stderr, "\nError execing find. ERROR#%d\n");
-				return 0;
-			}
-		}
+		printf("%s\n",argbuf);
 		return 1;
 	 } else if (current_cmd[0]=='.')
 	 {
-		 // relative path
-		 printf("relative path to binary\n");
+		// relative path
+		printf("relative path to binary\n");
+		
+		sprintf(cmdbuf,"%s",current_cmd);
+		sprintf(argbuf, current_args[0]);
+		for (int i=1; i<arg_count; i++)
+		{ 
+			sprintf(argbuf, "%s %s", argbuf, current_args[i]); 
+		}
+		printf("%s\n",argbuf);
+		return 1;
 	 } else
 	 {
 		 // must be in PATH
 		 printf("binary in $PATH\n");
 	 }
 	 
-	 return 0;
+	 
+	if (strcmp(cmdbuf, "")==0)
+	{
+		pid = fork();
+		if(pid == 0)
+		{
+			if (execl(cmdbuf,cmdbuf,argbuf)<0){
+				fprintf(stderr, "\nError execing find. ERROR#%d\n");
+				return 0;
+			}
+		}
+	}
+	
+	return 0;
 }

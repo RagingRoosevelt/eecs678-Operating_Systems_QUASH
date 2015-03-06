@@ -101,29 +101,33 @@ int main(int argc, char **argv,char **envp)
 		strcpy(current_cmd.instr, "");
 		for (int i=0; i<BSIZE; i++)
 		{ strcpy(current_cmd.args[i], ""); }
-
-		// Initialize tokenization 
-		token = strtok(user_input, " \n");
-		// Assume that first token is the command rather than arguments
-		strncpy(current_cmd.instr, token, sizeof(current_cmd.instr)-1);
-		printf( "command: %s\n", current_cmd.instr );
-		// Advance token location
-		token = strtok(NULL, " \n");
-		/* walk through other tokens */
-		current_cmd.arg_count = 0;
-		while( token != NULL ) 
-		{	// Extract current token to next element of the argument array
-			strncpy(current_cmd.args[current_cmd.arg_count], token, sizeof(current_cmd.args[current_cmd.arg_count])-1);
+	
+	
+		if (strcmp("","")==0)
+		{
+			printf("user input:%s<stop>\n",user_input);
+			// Initialize tokenization 
+			token = strtok(user_input, " \n");
+			// Assume that first token is the command rather than arguments
+			strncpy(current_cmd.instr, token, sizeof(current_cmd.instr)-1);
+			printf( "command: %s\n", current_cmd.instr );
 			// Advance token location
 			token = strtok(NULL, " \n");
-			// Increment count of arguments
-			current_cmd.arg_count++;
+			/* walk through other tokens */
+			current_cmd.arg_count = 0;
+			while( token != NULL ) 
+			{	// Extract current token to next element of the argument array
+				strncpy(current_cmd.args[current_cmd.arg_count], token, sizeof(current_cmd.args[current_cmd.arg_count])-1);
+				// Advance token location
+				token = strtok(NULL, " \n");
+				// Increment count of arguments
+				current_cmd.arg_count++;
+			}
+			
+			// Print arguments gathered
+			for (int i=0; i<current_cmd.arg_count; i++)
+			{ printf("Arguments: '%s'\n", current_cmd.args[i]); }
 		}
-		
-		
-		// Print arguments gathered
-		for (int i=0; i<current_cmd.arg_count; i++)
-		{ printf("Arguments: '%s'\n", current_cmd.args[i]); }
 		
 		
 		
