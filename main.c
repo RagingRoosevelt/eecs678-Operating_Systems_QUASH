@@ -144,6 +144,8 @@ int main(int argc, char **argv,char **envp)
 		
 			printf(strcat(temp, "\n"));
 		// cd
+		} else if (strcmp(current_cmd.instr, "clear") == 0){
+			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		} else if (strcmp(current_cmd.instr, "cd") == 0) {
 			cd(current_cmd.args[0]);
 		} 
@@ -181,8 +183,9 @@ int main(int argc, char **argv,char **envp)
 			//fw = fopen(current_cmd.args[0], "r");
 			//dup2(fw,STDIN_FILENO);
 			fromfile = 1;
-		}
-		else {
+		} else if ((strcmp(user_input,"exit") == 0) || (strcmp(user_input,"quit") == 0)) {
+			continue;
+		} else {
 		/*******************************
 		 * External command processing 
 		 *******************************/
