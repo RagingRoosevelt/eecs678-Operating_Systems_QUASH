@@ -13,8 +13,8 @@
 using namespace std;
 
 /*
-* [ ] Run executables without arguments (10)
-* [ ] Run executables with arguments (10)
+* [95%] Run executables without arguments (10)
+* [95%] Run executables with arguments (10)
 * [x] set for HOME and PATH work properly (5)
 * [x] exit and quit work properly (5)
 * [x] cd (with and without arguments) works properly (5)
@@ -24,7 +24,7 @@ using namespace std;
 * [ ] Printing/reporting of background processes, (including the jobs command) (10)
 * [ ] Allow file redirection (> and <) (5)
 * [ ] Allow (1) pipe (|) (10)
-* [ ] Supports reading commands from prompt and from file (10)
+* [95%] Supports reading commands from prompt and from file (10)
 * [ ] Report (10)
 *
 * Bonus points:
@@ -63,9 +63,10 @@ int main(int argc, char **argv,char **envp)
 	FILE* file;
 	int fw;
 	
-	while ((strcmp(user_input, "exit")!=0) && (strcmp(user_input, "quit")!=0))
+	while (1)
 	{	// display QUASH prompt and get user input.	
-		printf(strcat(getcwd(NULL, 0), "> "));
+	  
+//		printf(strcat(getcwd(NULL, 0), "> "));
 		// Get input from user or from file
 		if (fromfile)
 		{
@@ -77,11 +78,13 @@ int main(int argc, char **argv,char **envp)
 			{ // EOF reached, switch back to user input
 				fromfile = 0;
 				fclose(file);
+				printf("\n%s> ",getcwd(NULL,0));
 				fgets(user_input, sizeof(user_input), stdin);
 			}
 		}
 		else
 		{ // Get user input from stdin.
+  		printf("\n%s> ",getcwd(NULL,0));
 			fgets(user_input, sizeof(user_input), stdin);
 		}
 		
@@ -103,7 +106,7 @@ int main(int argc, char **argv,char **envp)
 		{ strcpy(current_cmd.args[i], ""); }
 	
 	
-		if (strcmp("","")==0)
+		if (strcmp(user_input,"") != 0)
 		{
 			printf("user input:%s<stop>\n",user_input);
 			// Initialize tokenization 
@@ -127,6 +130,8 @@ int main(int argc, char **argv,char **envp)
 			// Print arguments gathered
 			for (int i=0; i<current_cmd.arg_count; i++)
 			{ printf("Arguments: '%s'\n", current_cmd.args[i]); }
+		} else {
+  		continue;
 		}
 		
 		
@@ -184,7 +189,7 @@ int main(int argc, char **argv,char **envp)
 			//dup2(fw,STDIN_FILENO);
 			fromfile = 1;
 		} else if ((strcmp(user_input,"exit") == 0) || (strcmp(user_input,"quit") == 0)) {
-			continue;
+			break;
 		} else {
 		/*******************************
 		 * External command processing 
