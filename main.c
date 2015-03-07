@@ -194,77 +194,122 @@ int main(int argc, char **argv,char **envp) {
 		// cd
 		}else if (strncmp(buffer, "cd", 2) == 0) {
 			cd(buffer);
+			continue;
 		// pwd
 		} else if (strncmp(buffer, "pwd",3)==0) {
 			printf("%s\n",getcwd(NULL, 0));
+			continue;
 		// $PATH
 		} else if (strcmp(buffer, "$PATH\n")==0){
 			printf("\nPATH:              %s\n\n", getenv("PATH"));
+			continue;
 		// set PATH
 		} else if (strncmp(buffer, "set PATH=",9)==0){ 
 			// skip the "set PATH="
 			buffer+=9;
 			setenv("PATH",buffer,1);
 			printf("PATH set to %s\n", getenv("PATH"));
+			continue;
 		// $HOME
 		} else if (strcmp(buffer, "$HOME\n")==0){
 			printf("\nHOME:              %s\n\n", getenv("HOME"));
+			continue;
 		// set HOME
 		} else if (strncmp(buffer, "set HOME=",9)==0){ 
 			// skip the "set HOME="
 			buffer+=9;
 			setenv("HOME",buffer,1);
 			printf("HOME set to %s\n", getenv("HOME"));
+			continue;
 		// clear
 		} else if (strcmp(buffer, "clear\n")==0) {
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+			continue;
 		} else {
-			if (file_input != NULL) {
-				// input redirection, read input from file
-				printf("input redirection, read input from file\n");
-				#if 0
-				// Tokenize to remove '<' and '\n', getting first the command
-				char *token = strtok(buffer, "<\n");
-				strcpy(temp, token);
-				commandOne = parse_raw_input(temp, args);
-				// Advance token to get input file
-				token = strtok(NULL, "<\n");
-				strcpy(temp, token);
-				
-				// Execute the command and output the result to a file
-				//execute_output_to_file(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args, temp);
-				
-				// Reset variables
-				strcpy(temp,"");
-				free(commandOne);
-				commandOne = NULL;
-				#endif
-			} else if ((file_output == NULL) && (pipe_useage == NULL)){
+			if ((file_output == NULL) && (pipe_useage == NULL) && file_input == NULL){
 				// standard command
 				printf("<standard command>\n");
 				
 				commandOne = parse_raw_input(buffer, args);
 				execute(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args);
+				// Reset variables
 				memset(commandOne, 0, sizeof(*commandOne));
 				memset(buffer, '\0', sizeof(buffer));
-				// Reset command variable
 				free(commandOne);
 				commandOne = NULL;
 				
-			} else if ((file_output == NULL) && (pipe_useage != NULL)){
+				continue;
+			} 
+			if ((file_output == NULL) && (pipe_useage != NULL) && file_input == NULL){
 				// pipe only
 				printf("<pipe only>\n");
 				
-			} else if ((file_output == NULL) && (pipe_useage == NULL)){
+				continue;
+			} 
+			if ((file_output != NULL) && (pipe_useage == NULL) && file_input == NULL){
 				// output redirection only
 				printf("<output redirection only>\n");
+				// Tokenize to remove '>' and '\n', getting first the command
+				char *token = strtok(buffer, ">\n");
+				char firstStr[256];
+				strcpy(firstStr, token);
+				printf("first string  :%s\n",firstStr);
+				commandOne = parse_raw_input(firstStr, args);
+				// Advance token to get input file
+				char secondStr[256];
+				token = strtok(NULL, "<\n");
+				//if (token!=NULL){
+					strcpy(secondStr, token);
+					printf("second string:%s\n",secondStr);
+				//}
 				
-			} else if ((file_output == NULL) && (pipe_useage != NULL)){
+				// Execute the command and output the result to a file
+				execute_to_file(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args, secondStr);
+				
+				// Reset variables
+				memset(firstStr, '\0', sizeof(char) * BSIZE);
+				memset(secondStr, '\0', sizeof(char) * BSIZE);
+				memset(buffer, '\0', sizeof(buffer));
+				free(commandOne);
+				commandOne = NULL;
+				
+				continue;				
+			} 
+			if ((file_output != NULL) && (pipe_useage != NULL) && file_input == NULL){
 				// output redirection and pipe
 				printf("<output redirection and pipe>\n");
+				
+				continue;
+			} 
+			if (file_input != NULL) {
+				// input redirection, read input from file
+				printf("input redirection, read input from file\n");
+				// Tokenize to remove '<' and '\n', getting first the command
+				char *token = strtok(buffer, "<\n");
+				char firstStr[256];
+				strcpy(firstStr, token);
+				commandOne = parse_raw_input(firstStr, args);
+				// Advance token to get input file
+				char secondStr[256];
+				token = strtok(NULL, "<\n");
+				if (token!=NULL){
+					strcpy(secondStr, token);
+				}
+				
+				// Execute the command and output the result to a file
+				execute_from_file(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args, secondStr);
+				
+				// Reset variables
+				memset(firstStr, '\0', sizeof(char) * BSIZE);
+				memset(secondStr, '\0', sizeof(char) * BSIZE);
+				memset(buffer, '\0', sizeof(buffer));
+				free(commandOne);
+				commandOne = NULL;
+				
+				continue;
 			}
 				
 		

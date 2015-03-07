@@ -12,8 +12,9 @@
 using namespace std;
 
 
-int execute(char ***cmdbuf, int run_in_background, char **args)
+void execute(char ***cmdbuf, int run_in_background, char **args)
 {
+	errno = 0;
 	int status;
 	pid_t pid;
 	
@@ -21,9 +22,13 @@ int execute(char ***cmdbuf, int run_in_background, char **args)
 	if (pid < 0){
 		// thread creation failed
 		printf("Error with fork");
+		exit(1);
 	} else if (pid==0){
 		// child thread
-		execvpe(**cmdbuf, *cmdbuf, args);
+		if (execvpe(**cmdbuf, *cmdbuf, args)<0){
+			printf("error replacing process image: %s\n",strerror(errno));
+			exit(1);
+		}
 	} else {
 		// parent thread
 		if (run_in_background == 0){
@@ -32,4 +37,67 @@ int execute(char ***cmdbuf, int run_in_background, char **args)
 			printf("[1] %d\n",pid);
 		}
 	}
+	return;
+}
+
+void execute_to_file(char ***cmdbuf, int run_in_background, char **args, char* file_out_path){
+	errno = 0;
+	int status;
+	pid_t pid;
+	pid = fork();
+	if (pid < 0){
+		// thread creation failed
+		printf("Error with fork");
+		exit(1);
+	} else if (pid==0){
+		// child thread
+		FILE *file_out;
+		file_out = fopen(file_out_path, "w");
+		dup2(fileno(file_out), STDOUT_FILENO);
+		fclose(file_out);
+		if (execvpe(**cmdbuf, *cmdbuf, args)<0){
+			printf("error replacing process image: %s\n",strerror(errno));
+			exit(1);
+		}
+	} else {
+		// parent thread
+		if (run_in_background == 0){
+			while (wait(&status) != pid){}
+		} else {
+			printf("[1] %d\n",pid);
+		}
+	}
+	return;
+}
+
+
+
+void execute_from_file(char ***cmdbuf, int run_in_background, char **args, char* file_in_path){
+	errno = 0;
+	int status;
+	pid_t pid;
+	pid = fork();
+	if (pid < 0){
+		// thread creation failed
+		printf("Error with fork");
+		exit(1);
+	} else if (pid==0){
+		// child thread
+		FILE *file_in;
+		file_in = fopen(file_in_path, "r");
+		dup2(fileno(file_in), STDIN_FILENO);
+		fclose(file_in);
+		if (execvpe(**cmdbuf, *cmdbuf, args)<0){
+			printf("error replacing process image: %s\n",strerror(errno));
+			exit(1);
+		}
+	} else {
+		// parent thread
+		if (run_in_background == 0){
+			while (wait(&status) != pid){}
+		} else {
+			printf("[1] %d\n",pid);
+		}
+	}
+	return;
 }
