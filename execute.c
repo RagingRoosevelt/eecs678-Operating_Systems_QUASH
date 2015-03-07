@@ -12,41 +12,24 @@
 using namespace std;
 
 
-int execute(char current_cmd[BSIZE], char current_args[BSIZE][BSIZE], int arg_count)
+int execute(char ***cmdbuf, int run_in_background, char **args)
 {
-	int status=0;
+	int status;
 	pid_t pid;
-	char background_flag[1];
-	char cmdbuf[BSIZE];
-	char argbuf[BSIZE];
 	
-	
-	sprintf(cmdbuf,"%s",current_cmd);
-	sprintf(argbuf, current_args[0]);
-	for (int i=1; i<arg_count; i++)
-	{ 
-		sprintf(argbuf, "%s %s", argbuf, current_args[i]); 
-	}
-	
-	
-	
-	if (strcmp(cmdbuf, "") !=0 )
-	{
-	  printf("executing :%s %s",cmdbuf,argbuf);
-		pid = fork();
-		if(pid == 0)
-		{
-		  fflush(stderr);
-			if (execlp(cmdbuf,cmdbuf,argbuf)<0){
-				fprintf(stderr, "\nError execing find. ERROR#%d\n");
-			}
-			status=1;
-			return status;
+	pid = fork();
+	if (pid < 0){
+		// thread creation failed
+		printf("Error with fork");
+	} else if (pid==0){
+		// child thread
+		execvpe(**cmdbuf, *cmdbuf, args);
+	} else {
+		// parent thread
+		if (run_in_background == 0){
+			while (wait(&status) != pid){}
 		} else {
-			int i;
-			while ((i = wait(&status)) > 0)
-			{}
+			printf("[1] %d\n",pid);
 		}
-		
 	}
 }

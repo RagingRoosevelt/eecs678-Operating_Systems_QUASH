@@ -13,42 +13,136 @@
 using namespace std;
 
 /*
-* [95%] Run executables without arguments (10)
-* [95%] Run executables with arguments (10)
-* [x] set for HOME and PATH work properly (5)
-* [x] exit and quit work properly (5)
-* [x] cd (with and without arguments) works properly (5)
-* [ ] PATH works properly. Give error messages when the executable is not found (10)
-* [ ] Child processes inherit the environment (5)
-* [ ] Allow background/foreground execution (&) (5)
-* [ ] Printing/reporting of background processes, (including the jobs command) (10)
-* [ ] Allow file redirection (> and <) (5)
-* [ ] Allow (1) pipe (|) (10)
-* [95%] Supports reading commands from prompt and from file (10)
-* [ ] Report (10)
-*
-* Bonus points:
-* [ ] Support multiple pipes in one command (10)
-* [ ] kill command delivers signals to background processes. The kill
-* command has the format: kill SIGNUM, JOBID, where SIGNUM is an integer
-* specifying the signal number, and JOBID is an integer that specifies
-* the job that should receive the signal (5)
-*/
-
-struct command {
-	char instr[BSIZE];
-	char args[BSIZE][BSIZE];
-	int arg_count;
-};
+ * [x] Run executables without arguments (10)
+ * [x] Run executables with arguments (10)
+ * [ ] set for HOME and PATH work properly (5)
+ * [x] exit and quit work properly (5)
+ * [x] cd (with and without arguments) works properly (5)
+ * [ ] PATH works properly. Give error messages when the executable is not found (10)
+ * [x] Child processes inherit the environment (5)
+ * [x] Allow background/foreground execution (&) (5)
+ * [ ] Printing/reporting of background processes, (including the jobs command) (10)
+ * [ ] Allow file redirection (> and <) (5)
+ * [ ] Allow (1) pipe (|) (10)
+ * [ ] Supports reading commands from prompt and from file (10)
+ * [ ] Report (10)
+ *
+ * Bonus points:
+ * [ ] Support multiple pipes in one command (10)
+ * [ ] kill command delivers signals to background processes. The kill
+ * command has the format: kill SIGNUM, JOBID, where SIGNUM is an integer
+ * specifying the signal number, and JOBID is an integer that specifies
+ * the job that should receive the signal (5)
+ */
 
 #include "execute.c"
 #include "cd.c"
 #include "job.c"
-//#include "tokenize.c"
+
+/* Handles reading input from prompt
+ */
+char* accept(char* line) {
+	read(0, line, BSIZE);
+	return line;
+}
+
+/* Types of commands to receive from prompt
+ */
+typedef enum {
+	regular, pipes, in, out
+} type;
+
+/* Structure containing relevant info for command
+ * Populated by parse_raw_input
+ */
+typedef struct{
+	char** cmdbuf;
+	int arg_count;
+	char **args;
+	type command_type;
+	int run_in_background;
+	char target[BSIZE];
+} command;
+
+/* Parses ran user input into command structure
+ */
+command* parse_raw_input(char* buffer, char **args) {
+	
+	//Temporary stuff
+	char raw[BSIZE];
+	char* temp;
+	char* token;
+	char** cmdbuf = (char**) malloc(sizeof(char*) * BSIZE);
+	char** argv2;
+	int arg_count = 0;
+	int run_in_background;
+
+	command* current_cmd;
+
+	current_cmd = (command*) malloc(sizeof(command));
+	
+	
+	//Copy buffer to raw to avoid messing with other stuff
+	strcpy(raw, buffer);
+	
+	//Tokenize on spaces
+	token = strtok(raw, " \n");
+	while (token != NULL ) {
+		// Malloc a new string
+		temp = (char*) malloc((strlen(token) * sizeof(char)) + 1);
+		
+		// Zero it out
+		memset(temp, '\0', (strlen(token) * sizeof(char)) + 1);
+		
+		// Copy the contents of our token into temp
+		strcpy(temp, token);
+		
+		// Set the cmdbuf array to the temp pointer freshly malloced
+		cmdbuf[arg_count] = temp;
+		
+		// Clean temp pointer
+		temp = NULL;
+		
+		//Tokenize again
+		token = strtok(NULL, " \n");
+		arg_count++;
+	}
+
+	// Run detection for background operation
+	if (arg_count != 0) {
+		if (strcmp(cmdbuf[arg_count - 1], "&") == 0) {
+			run_in_background = 1;
+			cmdbuf[arg_count - 1][0] = '\0';
+		} else {
+			run_in_background = 0;
+		}
+	}
+	
+	//Trims the emoty slots of the cmdbuf array to avoid causing headaches 
+	//when running commands with different amounts of arguments
+	//I lost 3 hours until I realized this.
+	argv2 = (char**) malloc(sizeof(char*) * (arg_count + 1));
+	int i = 0;
+	for (i = arg_count; i < BSIZE - 1; i++) {
+
+		cmdbuf[arg_count] = '\0';
+	}
+	
+	//Set our command to its contents
+	(*current_cmd).arg_count = arg_count;
+	(*current_cmd).run_in_background = run_in_background;
+	(*current_cmd).cmdbuf = cmdbuf;
+	(*current_cmd).command_type = regular;
+	(*current_cmd).args = args;
+	
+	//Return the pointer to the malloced Command
+	return current_cmd;
+}
 
 
-int main(int argc, char **argv,char **envp)
-{
+/* Main program
+ */
+int main(int argc, char **argv,char **envp) {
 	
 	printf("Welcome to QUASH\n");
 	printf("Developed by Theodore S Lindsey & Samuel A Lamb\n");
@@ -56,149 +150,103 @@ int main(int argc, char **argv,char **envp)
 	printf("Current Directory: %s\n\n", getcwd(NULL, 0));
 	printf("PATH:              %s\n\n", getenv("PATH"));
 	
-	char user_input[BSIZE];
+	
+	char line[BSIZE];
+	char *buffer;
+	char **args;
 	char temp[BSIZE];
-	char filename[BSIZE];
-	int fromfile = 0;
-	FILE* file;
-	int fw;
+	
+	command* commandOne;
+	command* commandTwo;
+	
+	// string after |, <, or >
+	char* pipe_useage;
+	char* file_input;
+	char* file_output;
 	
 	while (1)
 	{	// display QUASH prompt and get user input.	
 	  
-//		printf(strcat(getcwd(NULL, 0), "> "));
-		// Get input from user or from file
-		if (fromfile)
-		{
-			if(!feof(file))
-			{ // Next line read from file
-				fgets (user_input, sizeof(user_input), file);
-			}
-			else 
-			{ // EOF reached, switch back to user input
-				fromfile = 0;
-				fclose(file);
-				printf("\n%s> ",getcwd(NULL,0));
-				fgets(user_input, sizeof(user_input), stdin);
-			}
-		}
-		else
-		{ // Get user input from stdin.
-  		printf("\n%s> ",getcwd(NULL,0));
-			fgets(user_input, sizeof(user_input), stdin);
-		}
 		
-		//Strips \n from input
-		size_t len = strlen(user_input);
-		if (len > 0 && user_input[len-1] == '\n') {
-				user_input[len - 1] = '\0';
-			}
+		printf("%s> ",getcwd(NULL,0));
+		fflush(stdout);
+		// ensure line is empty
+		memset(line, '\0', sizeof(line));
+		// read in line
+		buffer = accept(line);
 		
-		struct command current_cmd;
-		
-		/*******************************
-		 * tokenize user input into command and arguments 
-		 *******************************/
-		char *token;
-		// Clear out contents of the current_args array and current_cmd
-		strcpy(current_cmd.instr, "");
-		for (int i=0; i<BSIZE; i++)
-		{ strcpy(current_cmd.args[i], ""); }
-	
-	
-		if (strcmp(user_input,"") != 0)
-		{
-			printf("user input:%s<stop>\n",user_input);
-			// Initialize tokenization 
-			token = strtok(user_input, " \n");
-			// Assume that first token is the command rather than arguments
-			strncpy(current_cmd.instr, token, sizeof(current_cmd.instr)-1);
-			printf( "command: %s\n", current_cmd.instr );
-			// Advance token location
-			token = strtok(NULL, " \n");
-			/* walk through other tokens */
-			current_cmd.arg_count = 0;
-			while( token != NULL ) 
-			{	// Extract current token to next element of the argument array
-				strncpy(current_cmd.args[current_cmd.arg_count], token, sizeof(current_cmd.args[current_cmd.arg_count])-1);
-				// Advance token location
-				token = strtok(NULL, " \n");
-				// Increment count of arguments
-				current_cmd.arg_count++;
-			}
-			
-			// Print arguments gathered
-			for (int i=0; i<current_cmd.arg_count; i++)
-			{ printf("Arguments: '%s'\n", current_cmd.args[i]); }
-		} else {
-  		continue;
-		}
+		/* look for first occurrence of |, <, or > and 
+		 * report on trailing string
+		 */
+		pipe_useage = strpbrk(buffer, "|");
+		file_input = strpbrk(buffer, "<");
+		file_output = strpbrk(buffer, ">");
+		printf("pipe        :%s\n",pipe_useage);
+		printf("in from file:%s\n", file_input);
+		printf("out to file :%s\n", file_output);
 		
 		
-		
-		/*******************************
-		 * Built-in command processing 
-		 *******************************/
-		// pwd
-		if (strcmp(current_cmd.instr, "pwd") == 0)
-		{
-			if (getcwd(temp, sizeof(temp)) == NULL)
-			{
-				perror("getcwd() error");
-			}
-		
-			printf(strcat(temp, "\n"));
-		// cd
-		} else if (strcmp(current_cmd.instr, "clear") == 0){
-			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-		} else if (strcmp(current_cmd.instr, "cd") == 0) {
-			cd(current_cmd.args[0]);
-		} 
-		// set
-		else if (strcmp(current_cmd.instr, "set") == 0) 
-		{
-			// set PATH
-			if (strcmp(current_cmd.args[0],"PATH") == 0)
-			{
-				setenv ("PATH",strcat(strcat(getenv("PATH"),":"),current_cmd.args[1]),1);
-				printf("PATH:              %s\n\n", getenv("PATH"));
-			}
-			// set HOME
-			else if (strcmp(current_cmd.args[0],"HOME") == 0)
-			{
-				setenv("HOME",current_cmd.args[1],1);
-				printf("Home Directory:    %s\n", getenv("HOME"));
-			}
-			else{
-				printf("Please specify PATH or HOME.");
-			}
-		}
-		// jobs
-		// Theoretically, anyway.
-		else if (strcmp(current_cmd.instr,"jobs") == 0)
-		{
-			for (int i = 0; i < numjobs; i++)
-			{
-				printf("[%i] %i %s\n", joblist[i].jobID, joblist[i].jobpid, joblist[i].jobcommand);
-			}
-		}
-		else if (strcmp(current_cmd.instr,"<") == 0)
-		{
-			file = fopen(current_cmd.args[0], "rt"/*, stdin*/);
-			//fw = fopen(current_cmd.args[0], "r");
-			//dup2(fw,STDIN_FILENO);
-			fromfile = 1;
-		} else if ((strcmp(user_input,"exit") == 0) || (strcmp(user_input,"quit") == 0)) {
+		/* Figure out what commands to execute
+		 */
+		if ((strcmp(buffer,"exit\n")==0) || (strcmp(buffer,"quit\n")==0)){
 			break;
+		}else if (strncmp(buffer, "cd", 2) == 0) {
+			cd(buffer);
+		} else if (strncmp(buffer, "pwd",3)==0) {
+			printf("%s\n",getcwd(NULL, 0));
+		} else if (strcmp(buffer, "clear\n")==0) {
+			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		} else {
-		/*******************************
-		 * External command processing 
-		 *******************************/
-			if (execute(current_cmd.instr, current_cmd.args, current_cmd.arg_count)==0)
-			{ printf("error: command not found\n"); }				
-		}
+			if (file_input != NULL) {
+				// input redirection, read input from file
+				printf("input redirection, read input from file\n");
+				#if 0
+				// Tokenize to remove '<' and '\n', getting first the command
+				char *token = strtok(buffer, "<\n");
+				strcpy(temp, token);
+				commandOne = parse_raw_input(temp, args);
+				// Advance token to get input file
+				token = strtok(NULL, "<\n");
+				strcpy(temp, token);
+				
+				// Execute the command and output the result to a file
+				//execute_output_to_file(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args, temp);
+				
+				// Reset variables
+				strcpy(temp,"");
+				free(commandOne);
+				commandOne = NULL;
+				#endif
+			} else if ((file_output == NULL) && (pipe_useage == NULL)){
+				// standard command
+				printf("<standard command>\n");
+				
+				commandOne = parse_raw_input(buffer, args);
+				execute(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args);
+				memset(commandOne, 0, sizeof(*commandOne));
+				memset(buffer, '\0', sizeof(buffer));
+				// Reset command variable
+				free(commandOne);
+				commandOne = NULL;
+				
+			} else if ((file_output == NULL) && (pipe_useage != NULL)){
+				// pipe only
+				printf("<pipe only>\n");
+				
+			} else if ((file_output == NULL) && (pipe_useage == NULL)){
+				// output redirection only
+				printf("<output redirection only>\n");
+				
+			} else if ((file_output == NULL) && (pipe_useage != NULL)){
+				// output redirection and pipe
+				printf("<output redirection and pipe>\n");
+			}
+				
 		
+		}
 	}
-
 	return 0;
 }

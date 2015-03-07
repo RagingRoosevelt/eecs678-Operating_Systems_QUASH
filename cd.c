@@ -13,15 +13,26 @@ using namespace std;
 
 
 // Needs more testing
-void cd(char* newpath)
+void cd(char* buffer)
 {
-	if ((newpath == NULL) || (strcmp(newpath,"")==0))
+	// Clear out the newline character at the end
+	int len=strlen(buffer);
+	if (buffer[len-1]=='\n'){
+		buffer[len-1] = '\0';
+	}
+	
+	if ((strcmp(buffer,"cd")==0) || (strcmp(buffer,"cd ")==0))
 	{
 		chdir(getenv("HOME"));
 	}
 	else
 	{
-		if(chdir(newpath) == -1)
+		// remove first three characters of buffer (should be "cd ")
+		if (strncmp(buffer,"cd ",3)==0){
+			buffer+=3;			
+		}
+		
+		if(chdir(buffer) == -1)
 		{
 			// This part definitely happens.
 			printf("Invalid path name. Please be careful.\n");
