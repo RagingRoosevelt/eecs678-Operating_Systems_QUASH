@@ -144,6 +144,7 @@ command* parse_raw_input(char* buffer, char **args) {
  */
 int main(int argc, char **argv,char **envp) {
 	
+	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 	printf("                   Welcome to QUASH\n");
 	printf("                     Developed by\n");
 	printf("           Theodore S Lindsey & Samuel A Lamb\n");
@@ -189,6 +190,7 @@ int main(int argc, char **argv,char **envp) {
 		
 		/* Figure out what commands to execute
 		 */
+		 // exit/quit
 		if ((strncmp(buffer,"exit",4)==0) || (strncmp(buffer,"quit",4)==0)){
 			break;
 		// cd
@@ -228,6 +230,14 @@ int main(int argc, char **argv,char **envp) {
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 			continue;
+		// jobs
+		} else if (strncmp(buffer, "jobs", 4)==0){
+			
+			
+			printf("THIS SPACE INTENTIONALLY LEFT BLANK\n");
+			
+			
+			continue;
 		} else {
 			if ((file_output == NULL) && (pipe_useage == NULL) && file_input == NULL){
 				// standard command
@@ -240,6 +250,7 @@ int main(int argc, char **argv,char **envp) {
 				memset(buffer, '\0', sizeof(buffer));
 				free(commandOne);
 				commandOne = NULL;
+				printf("\n");
 				
 				continue;
 			} 

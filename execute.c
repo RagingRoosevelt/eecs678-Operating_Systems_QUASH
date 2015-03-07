@@ -84,6 +84,8 @@ void execute_from_file(char ***cmdbuf, int run_in_background, char **args, char*
 	} else if (pid==0){
 		// child thread
 		FILE *file_in;
+		/* I'm a little lost. Why do we open a file, dupe STDIN, then immediately close the file again?
+		*  This doesn't look like it should actually do anything. */
 		file_in = fopen(file_in_path, "r");
 		dup2(fileno(file_in), STDIN_FILENO);
 		fclose(file_in);
