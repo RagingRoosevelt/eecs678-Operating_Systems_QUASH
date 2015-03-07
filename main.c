@@ -194,6 +194,20 @@ int main(int argc, char **argv,char **envp) {
 			cd(buffer);
 		} else if (strncmp(buffer, "pwd",3)==0) {
 			printf("%s\n",getcwd(NULL, 0));
+		} else if (strcmp(buffer, "$PATH\n")==0){
+			printf("\nPATH:              %s\n\n", getenv("PATH"));
+		} else if (strncmp(buffer, "set PATH=",4)==0){ 
+			// skip the "set PATH="
+			buffer+=9;
+			setenv("PATH",buffer,1);
+			printf("PATH set to %s\n", getenv("PATH"));
+		} else if (strcmp(buffer, "$HOME\n")==0){
+			printf("\nHOME:              %s\n\n", getenv("HOME"));
+		} else if (strncmp(buffer, "set HOME=",4)==0){ 
+			// skip the "set HOME="
+			buffer+=9;
+			setenv("HOME",buffer,1);
+			printf("HOME set to %s\n", getenv("HOME"));
 		} else if (strcmp(buffer, "clear\n")==0) {
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
