@@ -144,13 +144,14 @@ command* parse_raw_input(char* buffer, char **args) {
  */
 int main(int argc, char **argv,char **envp) {
 	
+	// Welcome text
 	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 	printf("                   Welcome to QUASH\n");
 	printf("                     Developed by\n");
-	printf("           Theodore S Lindsey & Samuel A Lamb\n");
+	printf("           Theodore S Lindsey & Samuel A Lamb\n\n");
 	printf("Home Directory:    %s\n", getenv("HOME"));
-	printf("Current Directory: %s\n\n", getcwd(NULL, 0));
-	printf("PATH:              %s\n\n", getenv("PATH"));
+	printf("Current Directory: %s\n", getcwd(NULL, 0));
+	printf("Current Path:      %s\n\n", getenv("PATH"));
 	
 	
 	char line[BSIZE];

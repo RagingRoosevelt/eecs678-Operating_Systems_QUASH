@@ -98,7 +98,7 @@ void execute_from_file(char ***cmdbuf, int run_in_background, char **args, char*
 		if (run_in_background == 0){
 			while (wait(&status) != pid){}
 		} else {
-			printf("[1] %d\n",pid);
+			printf("[1] %d\n running in background",pid);
 		}
 	}
 	return;
