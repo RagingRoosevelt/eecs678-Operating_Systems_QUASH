@@ -15,7 +15,7 @@ using namespace std;
 /*
  * [x] Run executables without arguments (10)
  * [x] Run executables with arguments (10)
- * [ ] set for HOME and PATH work properly (5)
+ * [x] set for HOME and PATH work properly (5)
  * [x] exit and quit work properly (5)
  * [x] cd (with and without arguments) works properly (5)
  * [ ] PATH works properly. Give error messages when the executable is not found (10)
@@ -144,8 +144,9 @@ command* parse_raw_input(char* buffer, char **args) {
  */
 int main(int argc, char **argv,char **envp) {
 	
-	printf("Welcome to QUASH\n");
-	printf("Developed by Theodore S Lindsey & Samuel A Lamb\n");
+	printf("                   Welcome to QUASH\n");
+	printf("                     Developed by\n");
+	printf("           Theodore S Lindsey & Samuel A Lamb\n");
 	printf("Home Directory:    %s\n", getenv("HOME"));
 	printf("Current Directory: %s\n\n", getcwd(NULL, 0));
 	printf("PATH:              %s\n\n", getenv("PATH"));
@@ -188,26 +189,33 @@ int main(int argc, char **argv,char **envp) {
 		
 		/* Figure out what commands to execute
 		 */
-		if ((strcmp(buffer,"exit\n")==0) || (strcmp(buffer,"quit\n")==0)){
+		if ((strncmp(buffer,"exit",4)==0) || (strncmp(buffer,"quit",4)==0)){
 			break;
+		// cd
 		}else if (strncmp(buffer, "cd", 2) == 0) {
 			cd(buffer);
+		// pwd
 		} else if (strncmp(buffer, "pwd",3)==0) {
 			printf("%s\n",getcwd(NULL, 0));
+		// $PATH
 		} else if (strcmp(buffer, "$PATH\n")==0){
 			printf("\nPATH:              %s\n\n", getenv("PATH"));
-		} else if (strncmp(buffer, "set PATH=",4)==0){ 
+		// set PATH
+		} else if (strncmp(buffer, "set PATH=",9)==0){ 
 			// skip the "set PATH="
 			buffer+=9;
 			setenv("PATH",buffer,1);
 			printf("PATH set to %s\n", getenv("PATH"));
+		// $HOME
 		} else if (strcmp(buffer, "$HOME\n")==0){
 			printf("\nHOME:              %s\n\n", getenv("HOME"));
-		} else if (strncmp(buffer, "set HOME=",4)==0){ 
+		// set HOME
+		} else if (strncmp(buffer, "set HOME=",9)==0){ 
 			// skip the "set HOME="
 			buffer+=9;
 			setenv("HOME",buffer,1);
 			printf("HOME set to %s\n", getenv("HOME"));
+		// clear
 		} else if (strcmp(buffer, "clear\n")==0) {
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 			printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
