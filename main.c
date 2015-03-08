@@ -48,6 +48,7 @@ char* accept(char* line, int& fromfile) {
 	fromfile = read(fd, line, BSIZE);
 	if (fromfile <= 0)
 	{
+		close(fd);
 		read(0, line, BSIZE);
 	}
 	return line;
