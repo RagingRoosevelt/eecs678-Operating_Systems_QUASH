@@ -18,7 +18,7 @@ using namespace std;
  * [x] set for HOME and PATH work properly (5)
  * [x] exit and quit work properly (5)
  * [x] cd (with and without arguments) works properly (5)
- * [ ] PATH works properly. Give error messages when the executable is not found (10)
+ * [x] PATH works properly. Give error messages when the executable is not found (10)
  * [x] Child processes inherit the environment (5)
  * [x] Allow background/foreground execution (&) (5)
  * [ ] Printing/reporting of background processes, (including the jobs command) (10)
@@ -56,9 +56,9 @@ typedef enum {
  * Populated by parse_raw_input
  */
 typedef struct{
-	char** cmdbuf;
-	int arg_count;
-	char **args;
+	char** argv;
+	int argc;
+	char **env;
 	type command_type;
 	int run_in_background;
 	char target[BSIZE];
@@ -66,15 +66,15 @@ typedef struct{
 
 /* Parses ran user input into command structure
  */
-command* parse_raw_input(char* buffer, char **args) {
+command* parse_raw_input(char* buffer, char **env) {
 	
 	//Temporary stuff
 	char raw[BSIZE];
 	char* temp;
 	char* token;
-	char** cmdbuf = (char**) malloc(sizeof(char*) * BSIZE);
+	char** argv = (char**) malloc(sizeof(char*) * BSIZE);
 	char** argv2;
-	int arg_count = 0;
+	int argc = 0;
 	int run_in_background;
 
 	command* current_cmd;
@@ -97,43 +97,43 @@ command* parse_raw_input(char* buffer, char **args) {
 		// Copy the contents of our token into temp
 		strcpy(temp, token);
 		
-		// Set the cmdbuf array to the temp pointer freshly malloced
-		cmdbuf[arg_count] = temp;
+		// Set the argv array to the temp pointer freshly malloced
+		argv[argc] = temp;
 		
 		// Clean temp pointer
 		temp = NULL;
 		
 		//Tokenize again
 		token = strtok(NULL, " \n");
-		arg_count++;
+		argc++;
 	}
 
 	// Run detection for background operation
-	if (arg_count != 0) {
-		if (strcmp(cmdbuf[arg_count - 1], "&") == 0) {
+	if (argc != 0) {
+		if (strcmp(argv[argc - 1], "&") == 0) {
 			run_in_background = 1;
-			cmdbuf[arg_count - 1][0] = '\0';
+			argv[argc - 1][0] = '\0';
 		} else {
 			run_in_background = 0;
 		}
 	}
 	
-	//Trims the emoty slots of the cmdbuf array to avoid causing headaches 
+	//Trims the emoty slots of the argv array to avoid causing headaches 
 	//when running commands with different amounts of arguments
 	//I lost 3 hours until I realized this.
-	argv2 = (char**) malloc(sizeof(char*) * (arg_count + 1));
+	argv2 = (char**) malloc(sizeof(char*) * (argc + 1));
 	int i = 0;
-	for (i = arg_count; i < BSIZE - 1; i++) {
+	for (i = argc; i < BSIZE - 1; i++) {
 
-		cmdbuf[arg_count] = '\0';
+		argv[argc] = '\0';
 	}
 	
 	//Set our command to its contents
-	(*current_cmd).arg_count = arg_count;
+	(*current_cmd).argc = argc;
 	(*current_cmd).run_in_background = run_in_background;
-	(*current_cmd).cmdbuf = cmdbuf;
+	(*current_cmd).argv = argv;
 	(*current_cmd).command_type = regular;
-	(*current_cmd).args = args;
+	(*current_cmd).env = env;
 	
 	//Return the pointer to the malloced Command
 	return current_cmd;
@@ -156,7 +156,7 @@ int main(int argc, char **argv,char **envp) {
 	
 	char line[BSIZE];
 	char *buffer;
-	char **args;
+	char **env;
 	char temp[BSIZE];
 	
 	command* commandOne;
@@ -240,12 +240,12 @@ int main(int argc, char **argv,char **envp) {
 			
 			continue;
 		} else {
-			if ((file_output == NULL) && (pipe_useage == NULL) && file_input == NULL){
+			if ((file_output == NULL) && (pipe_useage == NULL) && (file_input == NULL)){
 				// standard command
 				printf("<standard command>\n");
 				
-				commandOne = parse_raw_input(buffer, args);
-				execute(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args);
+				commandOne = parse_raw_input(buffer, env);
+				execute(&((*commandOne).argv), (*commandOne).run_in_background, (*commandOne).env);
 				// Reset variables
 				memset(commandOne, 0, sizeof(*commandOne));
 				memset(buffer, '\0', sizeof(buffer));
@@ -255,13 +255,33 @@ int main(int argc, char **argv,char **envp) {
 				
 				continue;
 			} 
-			if ((file_output == NULL) && (pipe_useage != NULL) && file_input == NULL){
+			if ((file_output == NULL) && (pipe_useage != NULL) && (file_input == NULL)){
 				// pipe only
 				printf("<pipe only>\n");
 				
+				char* token = strtok(buffer, "|\n");
+				char firstStr[BSIZE];
+				strcpy(firstStr,token);
+				token = strtok(buffer, "|\n");
+				char secondStr[BSIZE];
+				strcpy(secondStr,token);
+				commandOne = parse_raw_input(firstStr, env);
+				commandTwo = parse_raw_input(secondStr, env);
+				
+				execute_pipe(&((*commandOne).argv), (*commandOne).run_in_background, (*commandOne).env, &((*commandTwo).argv), (*commandTwo).run_in_background, (*commandTwo).env);
+				
+				free(commandOne);
+				free(commandTwo);
+				commandOne = NULL;
+				commandTwo = NULL;
+				memset(firstStr, '\0', sizeof(char) * BSIZE);
+				memset(secondStr, '\0', sizeof(char) * BSIZE);
+				memset(buffer, '\0', sizeof(char) * BSIZE);
+				
+				
 				continue;
 			} 
-			if ((file_output != NULL) && (pipe_useage == NULL) && file_input == NULL){
+			if ((file_output != NULL) && (pipe_useage == NULL) && (file_input == NULL)){
 				// output redirection only
 				printf("<output redirection only>\n");
 				// Tokenize to remove '>' and '\n', getting first the command
@@ -269,17 +289,17 @@ int main(int argc, char **argv,char **envp) {
 				char firstStr[256];
 				strcpy(firstStr, token);
 				printf("first string  :%s\n",firstStr);
-				commandOne = parse_raw_input(firstStr, args);
+				commandOne = parse_raw_input(firstStr, env);
 				// Advance token to get input file
 				char secondStr[256];
 				token = strtok(NULL, "<\n");
-				//if (token!=NULL){
+				if (token!=NULL){
 					strcpy(secondStr, token);
 					printf("second string:%s\n",secondStr);
-				//}
+				}
 				
 				// Execute the command and output the result to a file
-				execute_to_file(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args, secondStr);
+				execute_to_file(&((*commandOne).argv), (*commandOne).run_in_background, (*commandOne).env, secondStr);
 				
 				// Reset variables
 				memset(firstStr, '\0', sizeof(char) * BSIZE);
@@ -290,7 +310,7 @@ int main(int argc, char **argv,char **envp) {
 				
 				continue;				
 			} 
-			if ((file_output != NULL) && (pipe_useage != NULL) && file_input == NULL){
+			if ((file_output != NULL) && (pipe_useage != NULL) && (file_input == NULL)){
 				// output redirection and pipe
 				printf("<output redirection and pipe>\n");
 				
@@ -301,18 +321,19 @@ int main(int argc, char **argv,char **envp) {
 				printf("input redirection, read input from file\n");
 				// Tokenize to remove '<' and '\n', getting first the command
 				char *token = strtok(buffer, "<\n");
-				char firstStr[256];
+				char firstStr[BSIZE];
 				strcpy(firstStr, token);
-				commandOne = parse_raw_input(firstStr, args);
 				// Advance token to get input file
-				char secondStr[256];
+				char secondStr[BSIZE];
 				token = strtok(NULL, "<\n");
 				if (token!=NULL){
 					strcpy(secondStr, token);
 				}
 				
+				// parse buffers
+				commandOne = parse_raw_input(firstStr, env);
 				// Execute the command and output the result to a file
-				execute_from_file(&((*commandOne).cmdbuf), (*commandOne).run_in_background, (*commandOne).args, secondStr);
+				execute_from_file(&((*commandOne).argv), (*commandOne).run_in_background, (*commandOne).env, secondStr);
 				
 				// Reset variables
 				memset(firstStr, '\0', sizeof(char) * BSIZE);
