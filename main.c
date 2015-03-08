@@ -250,6 +250,8 @@ int main(int argc, char **argv,char **envp) {
 			
 			continue;
 		} else {
+			system(buffer);
+			#if 0
 			if ((file_output == NULL) && (pipe_useage == NULL) && (file_input == NULL)){
 				// standard command
 				printf("<standard command>\n");
@@ -359,7 +361,7 @@ int main(int argc, char **argv,char **envp) {
 				continue;
 			}
 				
-		
+		#endif
 		}
 	}
 	return 0;
