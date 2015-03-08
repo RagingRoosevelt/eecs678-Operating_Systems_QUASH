@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #define BSIZE 256
 
@@ -39,10 +40,16 @@ using namespace std;
 #include "cd.c"
 #include "job.c"
 
+int fd;
+
 /* Handles reading input from prompt
  */
-char* accept(char* line) {
-	read(0, line, BSIZE);
+char* accept(char* line, int& fromfile) {
+	fromfile = read(fd, line, BSIZE);
+	if (fromfile <= 0)
+	{
+		read(0, line, BSIZE);
+	}
 	return line;
 }
 
@@ -158,6 +165,8 @@ int main(int argc, char **argv,char **envp) {
 	char *buffer;
 	char **env;
 	char temp[BSIZE];
+	int fromfile = 0;
+	char* filename;
 	
 	command* commandOne;
 	command* commandTwo;
@@ -176,7 +185,7 @@ int main(int argc, char **argv,char **envp) {
 		// ensure line is empty
 		memset(line, '\0', sizeof(line));
 		// read in line
-		buffer = accept(line);
+		buffer = accept(line, fromfile);
 		
 		/* look for first occurrence of |, <, or > and 
 		 * report on trailing string
@@ -319,6 +328,9 @@ int main(int argc, char **argv,char **envp) {
 			if (file_input != NULL) {
 				// input redirection, read input from file
 				printf("input redirection, read input from file\n");
+				strncpy(filename, buffer+3, strlen(buffer)-1);
+				fd = open(filename, O_RDONLY);
+				#if 0
 				// Tokenize to remove '<' and '\n', getting first the command
 				char *token = strtok(buffer, "<\n");
 				char firstStr[BSIZE];
@@ -342,6 +354,7 @@ int main(int argc, char **argv,char **envp) {
 				free(commandOne);
 				commandOne = NULL;
 				
+				#endif
 				continue;
 			}
 				
